@@ -1,34 +1,58 @@
-# 🍎 Dortania Hardware Checker & EFI Planner
+# Dortania Hardware Checker & EFI Planner
 
-> Herramienta de escritorio para detectar hardware compatible con macOS y generar automáticamente la carpeta EFI de OpenCore.
+A Windows desktop app that scans your hardware and builds a complete OpenCore EFI folder automatically. Built with Electron + React.
 
 ![Electron](https://img.shields.io/badge/Electron-35.0-47848F?logo=electron&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
-![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows-0078D4?logo=windows&logoColor=white)
 
 ---
 
-## ✨ Características
+## What it does
 
-- **🔍 Escaneo de hardware automático** — Detecta CPU, GPU, almacenamiento y red usando WMI (PowerShell nativo en Windows)
-- **🧠 Análisis de compatibilidad** — Compara tu hardware contra la base de datos de Dortania y te indica qué requiere configuración especial
-- **📁 Generación de EFI automatizada** — Descarga OpenCore, HfsPlus, kexts y SSDTs recomendados para tu hardware
-- **📄 config.plist personalizado** — Genera un `config.plist` con quirks, framebuffers, CPUID spoof y SMBIOS adaptados a tu hardware específico
-- **🔢 Generador de SMBIOS** — Genera números de serie, MLB y UUID válidos para iMessage/iCloud
-- **⬇️ Descargador de macOS Recovery** — Descarga `BaseSystem.dmg` y `BaseSystem.chunklist` directo desde los servidores de Apple
-- **🎨 UI Liquid Glass** — Interfaz con glassmorfismo, blobs animados y tema oscuro premium
-- **🧭 Flujo guiado** — La herramienta te lleva paso a paso: Escanear → Revisar → Generar EFI → Descargar macOS
+Queries WMI via PowerShell to identify your CPU, GPU, storage and network adapters, then cross-references those against Dortania's compatibility rules to produce a ready-to-use OpenCore EFI structure with a personalized `config.plist`.
+
+**Hardware detection**
+- CPU family, core count and hybrid architecture detection
+- GPU vendor/device IDs with compatibility notes
+- NVMe/SATA storage and TRIM support
+- Ethernet, Wi-Fi and Bluetooth chipset identification
+
+**EFI generation**
+- Downloads OpenCore binaries, HfsPlus.efi and OpenCanopy
+- Fetches the correct kexts for your hardware from GitHub releases
+- Compiles and places ACPI SSDTs
+- Writes a fully configured `config.plist` with hardware-specific quirks
+
+**config.plist customization**
+The generator adapts the following sections based on your actual hardware:
+
+| Section | What changes |
+|---|---|
+| `ACPI -> Add` | SSDTs matched to your CPU |
+| `Kernel -> Add` | Kexts in correct load order |
+| `Kernel -> Emulate` | CPUID spoof (base64) for Alder/Raptor Lake |
+| `Kernel -> Quirks` | Different values for AMD, Intel modern and Intel legacy |
+| `Booter -> Quirks` | SetupVirtualMap, DevirtualiseMmio per chipset |
+| `DeviceProperties` | Intel iGPU framebuffer by exact Device ID, headless if dGPU present |
+| `NVRAM -> boot-args` | Flags detected for your GPU/CPU combo |
+| `PlatformInfo` | Generated serial, MLB, UUID and Mac model |
+
+**Other tools**
+- SMBIOS generator (serial number, MLB, UUID) for iMessage/iCloud
+- macOS Recovery downloader — pulls `BaseSystem.dmg` and `BaseSystem.chunklist` directly from Apple CDN
+- live `config.plist` preview with syntax highlighting before writing to disk
 
 ---
 
-## 🚀 Inicio Rápido
+## Requirements
 
-### Requisitos
-- **Node.js** 20+
-- **Windows 10/11** (para el escaneo WMI nativo)
+- Node.js 20+
+- Windows 10 or 11 (WMI scanning requires PowerShell)
 
-### Instalación
+---
+
+## Setup
 
 ```bash
 git clone https://github.com/TU_USUARIO/dortania-efi-planner.git
@@ -36,13 +60,13 @@ cd dortania-efi-planner
 npm install
 ```
 
-### Desarrollo
+**Development**
 
 ```bash
 npm run dev
 ```
 
-### Producción (build)
+**Production build**
 
 ```bash
 npm run build
@@ -51,69 +75,43 @@ npm start
 
 ---
 
-## 📋 Flujo de Uso
+## Usage
+
+The app guides you through four steps in order:
+
+1. **Scan** — runs PowerShell WMI queries and builds the compatibility report
+2. **Review** — shows each component with its macOS compatibility status and notes
+3. **Generate EFI** — pick a destination folder, then the app downloads and assembles everything
+4. **Download macOS** — fetches the recovery image for whichever macOS version you need
+
+Download progress is preserved if you switch tabs.
+
+---
+
+## Project structure
 
 ```
-1. Escanear Hardware    → La app detecta automáticamente tu CPU, GPU, Red y Storage
-2. Revisar Resultados   → Analiza la compatibilidad con macOS según la guía Dortania
-3. Generar EFI          → Selecciona carpeta destino → La app descarga y arma todo
-4. Descargar macOS      → Descarga el recovery de Apple para la versión que elijas
+main.js                   Electron main process, IPC handlers
+preload.js                Context bridge between Electron and React
+detect_hardware.ps1       WMI queries via PowerShell
+build_efi.ps1             EFI folder assembly script
+src/
+  App.jsx                 Root component, global state
+  components/
+    Dashboard.jsx         Hardware scan and compatibility overview
+    EfiPlanner.jsx        4-step EFI build wizard
+    HardwareDetails.jsx   Raw hardware details view
+    CompatibilityLookup.jsx  Dortania database search
+  utils/
+    analyzer.js           Dortania compatibility ruleset engine
+    plistGenerator.js     config.plist builder with dynamic quirks
+    smbiosGenerator.js    Serial/MLB/UUID generation
+    macrecovery.js        Apple CDN recovery downloader
 ```
 
 ---
 
-## 🗂️ Estructura del Proyecto
-
-```
-├── main.js                  # Proceso principal Electron (IPC, WMI, builds)
-├── preload.js               # Puente seguro entre Electron y React
-├── detect_hardware.ps1      # Script PowerShell para consultar WMI
-├── build_efi.ps1            # Script PowerShell para construir la carpeta EFI
-├── src/
-│   ├── App.jsx              # Componente raíz + estado global
-│   ├── components/
-│   │   ├── Dashboard.jsx    # Panel de diagnóstico y compatibilidad
-│   │   ├── EfiPlanner.jsx   # Wizard de generación EFI (pasos 1-4)
-│   │   ├── HardwareDetails.jsx
-│   │   └── CompatibilityLookup.jsx
-│   └── utils/
-│       ├── analyzer.js      # Motor de análisis de compatibilidad Dortania
-│       ├── plistGenerator.js # Generador de config.plist con quirks dinámicos
-│       ├── smbiosGenerator.js # Generador de SMBIOS (serial/MLB/UUID)
-│       └── macrecovery.js   # Descargador de Apple CDN
-└── package.json
-```
-
----
-
-## ⚙️ config.plist Automático
-
-El generador adapta dinámicamente:
-
-| Sección | Qué personaliza |
-|---|---|
-| `ACPI → Add` | SSDTs por arquitectura de CPU |
-| `Kernel → Add` | Kexts en orden correcto (Lilu primero) |
-| `Kernel → Emulate` | CPUID Spoof en base64 para Alder/Raptor Lake |
-| `Kernel → Quirks` | `AppleXcpmCfgLock`, `ProvideCurrentCpuInfo` — distintos para AMD/Intel/Legacy |
-| `Booter → Quirks` | `DevirtualiseMmio`, `SetupVirtualMap` por chipset |
-| `DeviceProperties` | Framebuffer iGPU exacto según Device ID de tu Intel UHD |
-| `NVRAM → boot-args` | Flags para tu GPU y CPU detectados |
-| `PlatformInfo` | Serial, MLB, UUID y modelo de Mac (SMBIOS) |
-
----
-
-## 📦 Scripts
-
-| Comando | Descripción |
-|---|---|
-| `npm run dev` | Inicia Vite + Electron en modo desarrollo |
-| `npm run build` | Build de producción (Vite) |
-| `npm start` | Ejecuta Electron con el build de producción |
-
----
-
-## 🙏 Créditos
+## Credits
 
 - [Dortania OpenCore Install Guide](https://dortania.github.io/OpenCore-Install-Guide/)
 - [OpenCore](https://github.com/acidanthera/OpenCorePkg)
@@ -122,4 +120,4 @@ El generador adapta dinámicamente:
 
 ---
 
-> ⚠️ Este proyecto es solo para uso educativo. Instalar macOS en hardware no Apple puede violar los Términos de Servicio de Apple.
+> Installing macOS on non-Apple hardware may violate Apple's Terms of Service. This project is for educational purposes.
