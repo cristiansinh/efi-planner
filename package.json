@@ -2,6 +2,7 @@
   "name": "dortania-hardware-checker",
   "version": "1.0.0",
   "description": "Hardware checker and EFI planner for Hackintosh following Dortania guides.",
+  "license": "MIT",
   "main": "main.js",
   "type": "module",
   "scripts": {

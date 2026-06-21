@@ -111,12 +111,18 @@ src/
 
 ---
 
-## Credits
+## License & Credits
 
-- [Dortania OpenCore Install Guide](https://dortania.github.io/OpenCore-Install-Guide/)
-- [OpenCore](https://github.com/acidanthera/OpenCorePkg)
-- [corpnewt/GenSMBIOS](https://github.com/corpnewt/GenSMBIOS)
-- [corpnewt/gibMacOS](https://github.com/corpnewt/gibMacOS)
+This project is licensed under the MIT License. See the [LICENSE](file:///c:/dev/hackintosh/LICENSE) file for the full license text.
+
+### Credits & Reference Projects
+
+This application does not directly bundle or distribute third-party executable code from the following tools. However, their open-source implementations served as references for our custom Node.js/JavaScript features:
+
+- [Dortania's OpenCore Install Guide](https://dortania.github.io/OpenCore-Install-Guide/) - Compatibility rulesets and EFI configuration reference.
+- [OpenCorePkg by acidanthera](https://github.com/acidanthera/OpenCorePkg) - The OpenCore bootloader and reference concepts for `macserial` and `macrecovery`.
+- [GenSMBIOS by corpnewt](https://github.com/corpnewt/GenSMBIOS) - Reference for Apple SMBIOS serialization logic.
+- [gibMacOS by corpnewt](https://github.com/corpnewt/gibMacOS) - Reference for Apple OS Recovery CDN integration protocol.
 
 ---
 
